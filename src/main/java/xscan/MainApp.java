@@ -1,19 +1,21 @@
-package x_scan;
+package xscan;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author 项三六
+ */
 public class MainApp extends Frame implements ActionListener {
 
-    private int windowWeight = 480, windowHeight = 1200;
 
-
-    private Edge [] et = new Edge[windowHeight];
     private List<Point> points = new ArrayList<Point>();
-    private Edge aet;
 
+    /**
+     * 初始化顶点
+     */
     private void initPoints() {
 
         points.add(new Point(200, 200));
@@ -25,32 +27,36 @@ public class MainApp extends Frame implements ActionListener {
 
     }
 
-    private void ploygonScan(Graphics graphics) {
+    private void myPloygonScan(Graphics graphics) {
         initPoints();
+
+        //获得扫描线的范围
         int maxY = 0;
         for (Point point : points) {
             maxY = point.getY() > maxY ? (int) point.getY() : maxY;
         }
 
         //建立新边表
+        int windowHeight = 900;
         Edge[]  pET = new Edge[windowHeight];
         for (int i=0; i<maxY; i++) {
             pET[i] = new Edge();
         }
-        aet = new Edge();
+        Edge aet = new Edge();
         for (int i=0; i<points.size(); i++) {
-            int x0 = points.get((i - 1 + points.size()) % points.size()).x;
+//            int x0 = points.get((i - 1 + points.size()) % points.size()).x;
             int x1 = points.get(i).x;
             int x2 = points.get((i + 1) % points.size()).x;
-            int x3 = points.get((i + 2) % points.size()).x;
+//            int x3 = points.get((i + 2) % points.size()).x;
             int y0 = points.get((i - 1 + points.size()) % points.size()).y;
             int y1 = points.get(i).y;
             int y2 = points.get((i + 1) % points.size()).y;
             int y3 = points.get((i + 2) % points.size()).y;
 
             graphics.drawLine(x1, y1, x2, y2);
-            if (y1 == y2)
+            if (y1 == y2) {
                 continue;
+            }
 
 
             //计算下端点y坐标、上端点y坐标、下端点x坐标和斜率倒数dx
@@ -59,7 +65,9 @@ public class MainApp extends Frame implements ActionListener {
             float x = y1 > y2 ? x2 : x1;
             float dx = (x1 - x2)*1.0f / (y1-y2);
 
-            if ((y1 < y2) && (y1 > y0) || (y2<y1) && (y2>y3)) {
+            //共享顶点的两条边是否是分布在扫面线的两边
+            boolean isSpread = (y1 < y2) && (y1 > y0) || (y2<y1) && (y2>y3);
+            if (isSpread) {
                 yMin++;
                 x += dx;
             }
@@ -73,7 +81,6 @@ public class MainApp extends Frame implements ActionListener {
 
         }
         //新边表建立完毕
-
 
         //开始扫描
         for (int i=0 ;i<maxY; i++) {
@@ -101,7 +108,7 @@ public class MainApp extends Frame implements ActionListener {
             Edge p = aet;
             while (p.next != null && p.next.next != null) {
                 for (int x = (int) p.next.x; x <p.next.next.x; x++) {
-                    drawDot(graphics, new Point(x, i));
+                    drawDot(x, i);
                 }
                 p = p.next.next;
             }
@@ -112,9 +119,10 @@ public class MainApp extends Frame implements ActionListener {
                     Edge delete = p.next;
                     p.next = delete.next;
                     delete.next = null;
-                    delete = null;
-                } else
+//                    delete = null;
+                } else {
                     p = p.next;
+                }
             }
 
             p = aet;
@@ -129,11 +137,11 @@ public class MainApp extends Frame implements ActionListener {
 
     public static void main(String[] args) {
         Frame frame = new MainApp();
-        frame.setSize(1800, 1200);
+        frame.setSize(1200, 900);
         frame.setVisible(true);
     }
 
-    public MainApp() {
+    private MainApp() {
         setTitle("X扫描线算法");
         addWindowListener(new WindowAdapter() {
             @Override
@@ -147,25 +155,20 @@ public class MainApp extends Frame implements ActionListener {
 
     @Override
     public void paint(Graphics g) {
-        System.out.println("start");
-        ploygonScan(g);
-        System.out.println("end");
+        myPloygonScan(g);
     }
 
     public void actionPerformed(ActionEvent e) {
-        String commond = e.getActionCommand();
-        if ("Exit".equals(commond))
-            System.exit(0);
     }
 
     //
 
     /**
      * 因为Graphics类中没有画点的方法，所以使用画直线代替
-     * @param g Graphics的对象，没有它就不能画图的
-     * @param point 点对象，内有坐标
+     * @param x 点的x坐标
+     * @param y 点的y坐标
      */
-    private void drawDot(Graphics g, Point point) {
-        g.drawLine((int)point.getX(), (int)point.getY(), (int)point.getX(), (int)point.getY());
+    private void drawDot(int x, int y) {
+        getGraphics().drawLine(x, y, x, y);
     }
 }

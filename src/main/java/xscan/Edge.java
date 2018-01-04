@@ -1,4 +1,4 @@
-package x_scan;
+package xscan;
 
 class Edge {
     float yMax;
